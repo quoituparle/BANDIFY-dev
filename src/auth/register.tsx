@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
-import './App.css'
+import 'auth.css'
 import axios from 'axios'
-
+import apiClient from "../axiosConfig";
 
 function Registration () {
     const [email, setEmail] = useState<string>('');
@@ -32,7 +32,7 @@ function Registration () {
         
         try{
             const data = { email, password, full_name}
-            const response = await axios.post('/api/register/', data)
+            const response = await apiClient.post('/api/register/', data)
             console.log('Sign up success', response.data)
             navigate('/verify-email', { state: { email: email } })
 

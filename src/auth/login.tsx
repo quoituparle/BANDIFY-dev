@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
-import './App.css'
+import 'auth.css'
 import axios from 'axios'
+import apiClient from "../axiosConfig";
 
 function Login() {
     const [email, setEmail] = useState<string>('');
@@ -23,9 +24,15 @@ function Login() {
 
         try{
             const data = {email, password}
-            const response = await axios.post('/api/login/', data)
+            const response = await apiClient.post('/api/login/', data)
             console.log('Login success', response.data)
-            navigate('/')
+            const accessToken = response.data.access_token;
+            if (accessToken) {
+                localStorage.setItem('accessToken', accessToken)
+                navigate('/main')
+            } else {
+                setError("Login successful, but no token recieved")
+            }
         } catch(err) {
             if (axios.isAxiosError(err)) {
                 const status = err.response?.status;
