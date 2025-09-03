@@ -1,26 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import 'client.css'
 import axios from 'axios'
 import apiClient from "../axiosConfig";
 import { Language, Model } from "./def";
-
-interface scoringParames = {
-    selected_language: string,
-    selected_model: string,
-    topic_input: string,
-    essay_input: string,
-};
-
-interface ScoringResponse {
-    Overall_score: number;
-    TR: number;
-    LR: number;
-    CC: number;
-    GRA: number;
-    reason: string;
-    improvement: string;
-};
 
 interface UserDetails {
     email: string;
@@ -50,6 +33,7 @@ function Main() {
     const [score, setScore] = useState<string | null>(null);
     const [feedback, setFeedback] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [userEmail, setUserEmail] = useState<string>('');
     const [apiState, setApiState] = useState<{ // A more efficient react state updater, https://react.dev/learn/updating-objects-in-state#updating-a-nested-object
         loading: boolean;
         error: string | null;
@@ -63,9 +47,28 @@ function Main() {
     });
     const [updateLoading, setUpdateLoading] = useState<boolean>(false);
     const [logoutLoading, setLogoutLoading] = useState<boolean>(false);
+    const [deleteloading, setDeleteLoading] = useState<boolean>(false);
 
 
     const navigate = useNavigate(); 
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try{
+                const response = await apiClient.get<UserDetails>('/api/main/user/me')
+                const {email, api_key, language} = response.data
+                setUserEmail(email)
+                if (api_key) setApiKey(api_key);
+                if (language) setLanguage(language);
+            } catch (err) {
+                if (axios.isAxiosError(err)){
+                    const serverError = err.response?.data?.detail || 'Something went wrong'
+                    setApiState(prev => ({...prev, error: serverError}))
+                };
+            };
+        };
+        fetchData()
+    }, []);
 
     const update_data = async (e: {preventDefault: () => void}) => {
         e.preventDefault();
@@ -88,6 +91,16 @@ function Main() {
             setUpdateLoading(false);
         };
     };
+
+    interface ScoringResponse {
+    Overall_score: number;
+    TR: number;
+    LR: number;
+    CC: number;
+    GRA: number;
+    reason: string;
+    improvement: string;
+}
 
     const scoring = async () => {
 
@@ -114,30 +127,16 @@ function Main() {
 
         try{
             const params = {
-                api_key: apiKey,
-                selected_language: language,
                 selected_model: model,
                 topic_input: topic,
                 essay_input: essay,
                 };    
 
 
-            const response = await apiClient.post<scoringResponse>('/api/response', params);
+            const response = await apiClient.post<ScoringResponse>('/api/response', params);
             console.log("success", response.data)
+            setApiState(prev => ({...prev, loading: false, score: response.data})) // In HTML part , use apiState.score.CC to fetch data 
 
-            const data = response.data
-
-            const api_key = response.data.api_key;
-
-            const overall_score = response.data.Overall_score;
-            const TR = response.data.TR;
-            const LR = response.data.LR;
-            const CC = response.data.CC;
-            const GRA = response.data.GRA;
-            const reason = response.data.reason;
-            const improvement = response.data.improvement;
-            setScore(overall_score);
-            setFeedback(reason)
         } catch(err) {
             if (axios.isAxiosError(err)){
                 const serverError = err.response?.data?.detail || 'Something went wrong'
