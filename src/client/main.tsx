@@ -22,6 +22,12 @@ interface ScoringResponse {
     improvement: string;
 };
 
+interface UserDetails {
+    email: string;
+    api_key: string | null;
+    language: string | null;
+};
+
 const availableLanguages: Language[] = [
     {code: 'English', name: 'English'},
     {code: 'French', name: 'French'},
@@ -44,7 +50,7 @@ function Main() {
     const [score, setScore] = useState<string | null>(null);
     const [feedback, setFeedback] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-    const [apiState, setApiState] = useState<{
+    const [apiState, setApiState] = useState<{ // A more efficient react state updater, https://react.dev/learn/updating-objects-in-state#updating-a-nested-object
         loading: boolean;
         error: string | null;
         success: string | null;
@@ -72,41 +78,39 @@ function Main() {
         try{
             const response = await apiClient.post('/api/storage', playload)
             console.log("storage success", response.data)
-            setApiState(prev => ({...prev, success:"Settings updated successfully!"}))
+            setApiState(prev => ({...prev, success:"Settings updated successfully!"}));
         } catch(err) {
             if (axios.isAxiosError(err)) {
                 const serverError = err.response?.data?.detail || 'Something went wrong'                
-                setApiState(prev => ({...prev, error: serverError}))
+                setApiState(prev => ({...prev, error: serverError}));
             };
         } finally {
             setUpdateLoading(false);
         };
     };
 
-    const scoring = async (parames: scoringParames) : Promise<scoringResponse> => {
+    const scoring = async () => {
 
         const handleNullInput = () => {
             if (!topic.trim() && !essay.trim()){
-                setApiState(prev => ({...prev, error: "Nothing here"}))
+                setApiState(prev => ({...prev, error: "Nothing here"}));
                 return;
             };
 
             if (!topic.trim()){
-                setApiState(prev => ({...prev, error: "You forget to enter the topic"}))
+                setApiState(prev => ({...prev, error: "You forget to enter the topic"}));
                 return;
             };
 
             if (!essay.trim()){
-                setApiState(prev => ({...prev, error: "Where's the essay?"}))
+                setApiState(prev => ({...prev, error: "Where's the essay?"}));
                 return;
             };
         };
 
 
-        setScore(null);
-        setFeedback(null);
-        setLoading(true);
-        setError(null);
+        setApiState({ loading: true, error: null, success: null, score: null });
+
 
         try{
             const params = {
@@ -137,7 +141,7 @@ function Main() {
         } catch(err) {
             if (axios.isAxiosError(err)){
                 const serverError = err.response?.data?.detail || 'Something went wrong'
-                setError(serverError)
+                setApiState(prev => ({...prev, error: serverError}));
             };
         } finally {
             setLoading(false);
@@ -147,16 +151,15 @@ function Main() {
 
     const Logout = () => {
         setLogoutLoading(false);
-        setSuccess(null);
-        setError(null);
+        setApiState(prev => ({...prev, success: null, error: null}));
 
         try{
             localStorage.removeItem('accessToken')
-            setSuccess("Logout success")
+            setApiState(prev => ({...prev, success: "Logout success"}));
             navigate('/login')
         } catch(err) {
             console.log(err);
-            setError("Logout failed")
+            setApiState(prev => ({...prev, error:"Logout failed"}));
         } finally {
             setLogoutLoading(false);
         };
@@ -168,8 +171,7 @@ function Main() {
 
     const clearEssay = () => {
         setEssay('');
-        setError('');
-        setError(null)
+        setApiState(prev => ({ ...prev, error: null, score: null }));
     };
 
 
