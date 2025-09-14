@@ -38,11 +38,11 @@ function Login() {
 
         try {
             const data = { email, password };
-            const response = await apiClient.post('/api/login/', data);
+            const response = await apiClient.post('/login/', data);
             const accessToken = response.data.access_token;
             if (accessToken) {
                 localStorage.setItem('accessToken', accessToken);
-                navigate('/main');
+                navigate('/');
             } else {
                 setError("Login successful, but no token was received.");
             }

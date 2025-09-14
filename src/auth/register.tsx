@@ -57,7 +57,7 @@ function Registration() {
         
         try {
             const data = { email, password, full_name };
-            await apiClient.post('/api/register/', data);
+            await apiClient.post('/register/', data);
             navigate('/verify-email', { state: { email: email } });
         } catch (err) {
             if (axios.isAxiosError(err)) {

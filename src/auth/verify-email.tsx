@@ -1,4 +1,3 @@
-// --- START OF FILE verify-email.tsx ---
 
 import React, { useState } from "react";
 import { useLocation, useNavigate, Link } from 'react-router-dom';
@@ -39,7 +38,7 @@ function Verification () {
 
         try {
             const data = { email, code };
-            await apiClient.post('/api/verify-email/', data);
+            await apiClient.post('/verify-email', data);
             setSuccess('Verification successful! Redirecting to login...');
             setTimeout(() => {
                 navigate('/login');

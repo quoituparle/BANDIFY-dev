@@ -98,7 +98,7 @@ function Main() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await apiClient.get<UserDetails>('/api/main/info/')
+                const response = await apiClient.get<UserDetails>('/main/user/info/')
                 const { user_email, api_key, language } = response.data
                 setUserEmail(user_email)
                 if (api_key) setApiKey(api_key);
@@ -129,7 +129,7 @@ function Main() {
         setUpdateLoading(true);
         setApiState(prev => ({ ...prev, error: null, success: null }));
         try {
-            await apiClient.post('/api/main/storage/', payload)
+            await apiClient.post('/main/user/storage/', payload)
             setApiState(prev => ({ ...prev, success: "Settings updated successfully!" }));
             setTimeout(() => {
                 setIsSettingsOpen(false);
@@ -152,7 +152,7 @@ function Main() {
         setApiState({ loading: true, error: null, success: null, score: null });
         try {
             const params = { model: model, input_topic: topic, input_essay: essay };
-            const response = await apiClient.post<ScoringResponse>('/api/main/response/', params);
+            const response = await apiClient.post<ScoringResponse>('/main/response/', params);
             setApiState(prev => ({ ...prev, loading: false, score: response.data }))
         } catch (err) {
             if (axios.isAxiosError(err)) {
@@ -182,7 +182,7 @@ function Main() {
             setDeleteLoading(true);
             setApiState(prev => ({ ...prev, error: null, success: null }));
             try {
-                await apiClient.delete('/api/main/user/delete');
+                await apiClient.delete('/main/user/delete');
                 localStorage.removeItem('accessToken');
                 navigate('/login');
             } catch (err) {
