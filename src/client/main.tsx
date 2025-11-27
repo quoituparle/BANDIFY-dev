@@ -1,10 +1,11 @@
-
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import apiClient from "../axiosConfig";
 import type { Language, Model } from "./def";
 import './client.css'
+
+// --- Interfaces ---
 
 interface UserDetails {
     user_email: string;
@@ -22,15 +23,13 @@ interface ScoringResponse {
     improvement: string;
 }
 
-interface PublishEssay {
-    Overall_score: number;
-    TR: number;
-    LR: number;
-    CC: number;
-    GRA: number;
-    reason?: string;
-    improvement?: string;
+interface PublishEssayResponse {
+    essay_id: string;
+    score: string;
+    content: string;
 }
+
+// --- Constants ---
 
 const availableLanguages: Language[] = [
     { code: 'English', name: 'English' },
@@ -48,9 +47,10 @@ const availableModels: Model[] = [
 ];
 
 // --- Icons ---
+
 const GearIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-1.007 1.113-1.113l.448-.113c.542-.135 1.092.198 1.385.646l.293.44c.292.44.833.646 1.385.646h.448c.542 0 1.007.465 1.113 1.113l.113.448c.135.542-.198 1.092-.646 1.385l-.44.293c-.44.292-.646.833-.646 1.385v.448c0 .542.465 1.007 1.113 1.113l.448.113c.542.135 1.092-.198 1.385-.646l.293-.44c.292-.44.833-.646 1.385-.646h.448c.542 0 1.007.465 1.113 1.113l.113.448c.135.542-.198 1.092-.646 1.385l-.44.293c-.44.292-.646.833-.646 1.385v.448c0 .542.465 1.007 1.113 1.113l.448.113c.542.135.198 1.092-.646 1.385l-.44.293c-.44.292-.833.646-1.385.646h-.448c-.542 0-1.007-.465-1.113-1.113l-.113-.448c-.135-.542.198-1.092.646-1.385l.44-.293c.44-.292.646-.833.646-1.385v-.448c0-.542-.465-1.007-1.113-1.113l-.448-.113c-.542-.135-1.092.198-1.385.646l-.293.44c-.292.44-.833.646-1.385.646h-.448c-.542 0-1.007-.465-1.113-1.113l-.113-.448c-.135-.542.198-1.092.646-1.385l.44-.293c.44-.292.646-.833.646-1.385v-.448c0-.542-.465-1.007-1.113-1.113l-.448-.113c-.542-.135-.198-1.092.646-1.385l.44-.293c.44-.292.833-.646 1.385.646h.448c.542 0 1.007.465 1.113 1.113l.113.448c.135.542-.198 1.092-.646 1.385l-.44.293c-.44.292-.646.833-.646 1.385v.448c0 .542.465 1.007 1.113 1.113l.448.113c.542.135 1.092-.198 1.385-.646l.293-.44c.293-.44.833-.646 1.385-.646h.448c.542 0 1.007.465 1.113 1.113l.113.448c.135.542-.198 1.092-.646 1.385l-.44.293c-.44.292-.646.833-.646 1.385v.448c0 .542.465 1.007 1.113 1.113l.448.113c.542.135.198 1.092-.646 1.385l-.44.293c-.44.292-.833.646-1.385.646h-.448c-.542 0-1.007-.465-1.113-1.113l-.113-.448c-.135-.542.198-1.092.646-1.385l.44-.293c.44-.292.646-.833.646-1.385v-.448c0-.542-.465-1.007-1.113-1.113l-.448-.113c-.542-.135-1.092.198-1.385.646l-.293.44c-.292-.44-.833-.646-1.385.646h-.448c-.542 0-1.007-.465-1.113-1.113l-.113-.448c-.135-.542.198-1.092.646-1.385l.44-.293c.44-.292.646-.833.646-1.385v-.448z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-1.007 1.113-1.113l.448-.113c.542-.135 1.092.198 1.385.646l.293.44c.292.44.833.646 1.385.646h.448c.542 0 1.007.465 1.113 1.113l.113.448c.135.542-.198 1.092-.646 1.385l-.44.293c-.44.292-.646.833-.646 1.385v.448c0 .542.465 1.007 1.113 1.113l.448.113c.542.135 1.092-.198 1.385-.646l.293-.44c.292-.44.833-.646 1.385-.646h.448c.542 0 1.007.465 1.113 1.113l.113.448c.135.542-.198 1.092-.646 1.385l-.44.293c-.44.292-.833.646-1.385.646h-.448c-.542 0-1.007-.465-1.113-1.113l-.113-.448c-.135-.542.198-1.092.646-1.385l.44-.293c.44-.292.646-.833.646-1.385v-.448c0-.542-.465-1.007-1.113-1.113l-.448-.113c-.542-.135-1.092.198-1.385.646l-.293.44c-.292-.44-.833.646-1.385.646h-.448c-.542 0-1.007-.465-1.113-1.113l-.113-.448c-.135-.542.198-1.092.646-1.385l.44-.293c.44-.292.646-.833.646-1.385v-.448c0-.542-.465-1.007-1.113-1.113l-.448-.113c-.542-.135.198 1.092-.646 1.385l-.44.293c-.44.292-.833.646 1.385.646h.448c.542 0 1.007.465 1.113 1.113l.113.448c.135.542-.198 1.092-.646 1.385l-.44.293c-.44.292-.646.833-.646 1.385v.448c0 .542.465 1.007 1.113 1.113l.448.113c.542.135.198 1.092-.646 1.385l-.44.293c-.44.292-.833.646-1.385.646h-.448c-.542 0-1.007-.465-1.113-1.113l-.113-.448c-.135-.542.198-1.092.646-1.385l.44-.293c.44-.292.646-.833.646-1.385v-.448z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
 );
@@ -80,7 +80,26 @@ const EyeSlashIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-// --- Animation Component ---
+const PlaygroundIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+    </svg>
+);
+
+const CloudUploadIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+    </svg>
+);
+
+const PencilIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+    </svg>
+);
+
+// --- Animation Components ---
+
 const AnimatedNumber = ({ value, duration = 1500 }: { value: number, duration?: number }) => {
     const [displayValue, setDisplayValue] = useState(0);
 
@@ -92,10 +111,10 @@ const AnimatedNumber = ({ value, duration = 1500 }: { value: number, duration?: 
             if (!startTime) startTime = currentTime;
             const progress = Math.min((currentTime - startTime) / duration, 1);
             
-            // Ease-out Quart cubic bezier approximation for smooth landing
+            // Ease-out Quart cubic bezier approximation
             const ease = 1 - Math.pow(1 - progress, 4);
             
-            setDisplayValue(progress * value); // or use 'ease' for value: value * ease
+            setDisplayValue(progress * value); 
 
             if (progress < 1) {
                 animationFrameId = requestAnimationFrame(animate);
@@ -114,9 +133,8 @@ const AnimatedNumber = ({ value, duration = 1500 }: { value: number, duration?: 
     return <span>{displayValue.toFixed(1)}</span>;
 };
 
-// --- Sub-score Progress Bar Component ---
 const ScoreBar = ({ label, score }: { label: string, score: number }) => {
-    // IELTS is out of 9
+    // IELTS score is out of 9
     const percentage = Math.min((score / 9) * 100, 100);
     
     return (
@@ -135,6 +153,8 @@ const ScoreBar = ({ label, score }: { label: string, score: number }) => {
     );
 };
 
+// --- Main Component ---
+
 function Main() {
     const [topic, setTopic] = useState<string>('');
     const [essay, setEssay] = useState<string>('');
@@ -142,7 +162,10 @@ function Main() {
     const [language, setLanguage] = useState<string>('English');
     const [apiKey, setApiKey] = useState<string>('');
     const [userEmail, setUserEmail] = useState<string>('');
+    
+    // State to hold the ID of the topic if user came from playground
     const [topicId, setTopicId] = useState<string | null>(null);
+
     const [apiState, setApiState] = useState<{
         loading: boolean;
         error: string | null;
@@ -158,6 +181,7 @@ function Main() {
     const [logoutLoading, setLogoutLoading] = useState<boolean>(false);
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
     const [publishLoading, setPublishLoading] = useState<boolean>(false);
+    
     const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
     const [isApiKeyVisible, setIsApiKeyVisible] = useState<boolean>(false);
     const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
@@ -165,7 +189,9 @@ function Main() {
 
     const resultsRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
+    // Fetch User Info
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -188,12 +214,24 @@ function Main() {
         fetchData()
     }, [navigate]);
 
+    // Check for state passed from Playground (Practice Mode)
+    useEffect(() => {
+        if (location.state && location.state.topicText) {
+            setTopic(location.state.topicText);
+            setTopicId(location.state.topicId);
+            // Optionally clear history state to clean up, but keeping it is fine too
+        }
+    }, [location]);
+
+    // Auto-scroll to results
     useEffect(() => {
         if (apiState.score && resultsRef.current) {
             resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }, [apiState.score]);
     
+    // --- Actions ---
+
     const update_data = async (e: React.FormEvent) => {
         e.preventDefault();
         const payload = { user_language: language, api_key: apiKey }
@@ -232,29 +270,12 @@ function Main() {
         };
     };
     
-    const PostEssay = async (topic_id: string) => {
-        if (topic_id === null) {
-            setApiState(p => ({...p, error: 'This essay cannot publish'}))
-        }
-        setPublishLoading(true)
-        setApiState(p => ({...p, error: null, success: null}));
-        try{
-            await apiClient.post<PublishEssay>(`/main/topic/${topic_id}/essays/`)
-        } catch(err) {
-            if (axios.isAxiosError(err)) {
-                const serverError = err.request?.data?.detail || 'Failed to publish essay.'
-                setApiState(p => ({ ...p, error: serverError}))
-            };
-        } finally {
-            setPublishLoading(false);
-        };
-    };
-    
 
     const scoring = async () => {
         if (!topic.trim() && !essay.trim()) { setApiState(prev => ({ ...prev, error: "Topic and Essay fields are empty." })); return; };
         if (!topic.trim()) { setApiState(prev => ({ ...prev, error: "Please enter the essay topic." })); return; };
         if (!essay.trim()) { setApiState(prev => ({ ...prev, error: "Please enter your essay." })); return; };
+        
         setApiState({ loading: true, error: null, success: null, score: null });
         try {
             const params = { model: model, input_topic: topic, input_essay: essay };
@@ -267,6 +288,44 @@ function Main() {
             } else {
                 setApiState(prev => ({ ...prev, loading: false, error: 'An unexpected error occurred' }));
             }
+        };
+    };
+
+    const PostEssay = async () => {
+        if (!topicId) {
+            setApiState(p => ({...p, error: 'This essay cannot be published (No Topic ID found).'}));
+            return;
+        }
+        if (!apiState.score) {
+             setApiState(p => ({...p, error: 'Please get a score first.'}));
+             return;
+        }
+
+        setPublishLoading(true);
+        setApiState(p => ({...p, error: null, success: null}));
+        
+        try{
+            // Prepare payload for essay creation
+            // We stringify the score object as the backend expects a string for the score field (based on models.py)
+            const payload = {
+                content: essay,
+                score: JSON.stringify(apiState.score)
+            };
+
+            await apiClient.post<PublishEssayResponse>(`/main/topic/${topicId}/essays`, payload);
+            
+            setApiState(p => ({...p, success: "Essay published to leaderboard successfully!"}));
+            // Clear topicId to prevent duplicate publishing
+            setTopicId(null); 
+        } catch(err) {
+            if (axios.isAxiosError(err)) {
+                const serverError = err.response?.data?.detail || 'Failed to publish essay.'
+                setApiState(p => ({ ...p, error: serverError}))
+            } else {
+                setApiState(p => ({ ...p, error: "An unexpected error occurred."}))
+            }
+        } finally {
+            setPublishLoading(false);
         };
     };
 
@@ -304,6 +363,7 @@ function Main() {
     const clearInputs = () => {
         setTopic('');
         setEssay('');
+        setTopicId(null); // Also clear the topic association
         setApiState(prev => ({ ...prev, error: null, score: null, success: null }));
     };
 
@@ -316,7 +376,6 @@ function Main() {
         setLanguage(langCode);
         setIsLangDropdownOpen(false);
     };
-
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
@@ -367,44 +426,60 @@ function Main() {
                             </div>
                         </div>
                     </div>
-                    <div className="relative">
-                        <button onClick={() => setIsSettingsOpen(prev => !prev)} className="p-2.5 rounded-full hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer active:scale-95">
-                            <GearIcon className="w-6 h-6" />
+
+                    <div className="flex items-center gap-4">
+                         {/* Playground Button */}
+                         <button 
+                            onClick={() => navigate('/playground')} 
+                            className="p-2.5 rounded-full hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer active:scale-95 group relative"
+                            title="Go to Playground"
+                        >
+                            <PlaygroundIcon className="w-6 h-6" />
+                            <span className="absolute top-full right-0 mt-1 text-xs bg-slate-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                Playground
+                            </span>
                         </button>
-                        <div className={`absolute top-full right-0 mt-4 w-80 bg-white rounded-xl shadow-2xl ring-1 ring-black ring-opacity-5 origin-top-right transition-all duration-300 ease-cubic-bezier ${isSettingsOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}>
-                           <form onSubmit={update_data} className="p-5 space-y-5">
-                                <div className="border-b border-slate-100 pb-3">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Signed in as</p>
-                                    <p className="text-sm font-medium text-slate-800 truncate">{userEmail}</p>
-                                </div>
-                                <div>
-                                    <label htmlFor="api_key" className="block text-sm font-medium text-slate-700 mb-1.5">Google AI API Key</label>
-                                    <div className="relative">
-                                        <input 
-                                            id="api_key" 
-                                            type={isApiKeyVisible ? 'text' : 'password'} 
-                                            value={apiKey}
-                                            onChange={(e) => setApiKey(e.target.value)}
-                                            className="w-full pl-3 pr-10 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-all text-sm"
-                                            placeholder="sk-..."
-                                        />
-                                        <button type="button" onClick={() => setIsApiKeyVisible(prev => !prev)} className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                                            {isApiKeyVisible ? <EyeSlashIcon className="w-5 h-5"/> : <EyeIcon className="w-5 h-5"/>}
+
+                        {/* Settings Button & Dropdown */}
+                        <div className="relative">
+                            <button onClick={() => setIsSettingsOpen(prev => !prev)} className="p-2.5 rounded-full hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer active:scale-95">
+                                <GearIcon className="w-6 h-6" />
+                            </button>
+                            <div className={`absolute top-full right-0 mt-4 w-80 bg-white rounded-xl shadow-2xl ring-1 ring-black ring-opacity-5 origin-top-right transition-all duration-300 ease-cubic-bezier ${isSettingsOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}>
+                            <form onSubmit={update_data} className="p-5 space-y-5">
+                                    <div className="border-b border-slate-100 pb-3">
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Signed in as</p>
+                                        <p className="text-sm font-medium text-slate-800 truncate">{userEmail}</p>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="api_key" className="block text-sm font-medium text-slate-700 mb-1.5">Google AI API Key</label>
+                                        <div className="relative">
+                                            <input 
+                                                id="api_key" 
+                                                type={isApiKeyVisible ? 'text' : 'password'} 
+                                                value={apiKey}
+                                                onChange={(e) => setApiKey(e.target.value)}
+                                                className="w-full pl-3 pr-10 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-all text-sm"
+                                                placeholder="sk-..."
+                                            />
+                                            <button type="button" onClick={() => setIsApiKeyVisible(prev => !prev)} className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                                                {isApiKeyVisible ? <EyeSlashIcon className="w-5 h-5"/> : <EyeIcon className="w-5 h-5"/>}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="submit" disabled={updateLoading} className="w-full bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-700 disabled:bg-slate-400 shadow-md hover:shadow-lg transition-all flex items-center justify-center cursor-pointer">
+                                        {updateLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Update Settings'}
+                                    </button>
+                                    <div className="border-t border-slate-100 pt-4 space-y-3">
+                                        <button type="button" onClick={Logout} disabled={logoutLoading} className="w-full bg-white border border-red-200 text-red-600 font-semibold py-2.5 px-4 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center cursor-pointer">
+                                            {logoutLoading ? <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div> : 'Log Out'}
+                                        </button>
+                                        <button type="button" onClick={handleDeleteAccount} disabled={deleteLoading} className="w-full text-red-500 text-xs font-medium hover:underline disabled:opacity-50 cursor-pointer text-center block">
+                                            {deleteLoading ? 'Deleting...' : 'Delete Account'}
                                         </button>
                                     </div>
-                                </div>
-                                <button type="submit" disabled={updateLoading} className="w-full bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-700 disabled:bg-slate-400 shadow-md hover:shadow-lg transition-all flex items-center justify-center cursor-pointer">
-                                    {updateLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Update Settings'}
-                                </button>
-                                <div className="border-t border-slate-100 pt-4 space-y-3">
-                                     <button type="button" onClick={Logout} disabled={logoutLoading} className="w-full bg-white border border-red-200 text-red-600 font-semibold py-2.5 px-4 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center cursor-pointer">
-                                        {logoutLoading ? <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div> : 'Log Out'}
-                                    </button>
-                                    <button type="button" onClick={handleDeleteAccount} disabled={deleteLoading} className="w-full text-red-500 text-xs font-medium hover:underline disabled:opacity-50 cursor-pointer text-center block">
-                                        {deleteLoading ? 'Deleting...' : 'Delete Account'}
-                                    </button>
-                                </div>
-                           </form>
+                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -412,6 +487,7 @@ function Main() {
 
             <main className="container mx-auto p-6 md:p-12">
                 <div className="max-w-4xl mx-auto space-y-8">
+                    {/* Error Message */}
                     {apiState.error && (
                          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm flex items-start gap-3" role="alert">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -421,6 +497,8 @@ function Main() {
                             </div>
                         </div>
                     )}
+                    
+                    {/* Success Message */}
                     {apiState.success && (
                         <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm flex items-start gap-3" role="alert">
                              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -431,10 +509,19 @@ function Main() {
                         </div>
                     )}
 
+                    {/* Topic Input Section */}
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <label htmlFor="topic" className="block text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-6 bg-orange-500 rounded-full inline-block"></span>
-                            Essay Topic
+                        <label htmlFor="topic" className="block text-lg font-bold text-slate-800 mb-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-6 bg-orange-500 rounded-full inline-block"></span>
+                                Essay Topic
+                            </div>
+                            {/* Practice Mode Indicator */}
+                            {topicId && (
+                                <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-1 rounded-md flex items-center gap-1">
+                                    <PencilIcon className="w-3 h-3" /> Practice Mode
+                                </span>
+                            )}
                         </label>
                         <div className="relative group">
                             <textarea
@@ -442,7 +529,7 @@ function Main() {
                                 value={topic}
                                 onChange={(e) => setTopic(e.target.value)}
                                 placeholder="e.g., Some people think that parents should teach children how to be good members of society. Others, however, believe that school is the place to learn this..."
-                                className="w-full h-32 p-4 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white shadow-inner focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all resize-none text-slate-700 placeholder:text-slate-400"
+                                className={`w-full h-32 p-4 border rounded-xl bg-slate-50 focus:bg-white shadow-inner focus:ring-2 transition-all resize-none text-slate-700 placeholder:text-slate-400 ${topicId ? 'border-green-200 focus:border-green-400 focus:ring-green-100' : 'border-slate-200 focus:border-orange-400 focus:ring-orange-200'}`}
                             />
                             {topic && (
                                 <button onClick={() => setTopic('')} className="absolute top-3 right-3 p-2 rounded-lg text-slate-400 hover:bg-white hover:text-red-500 hover:shadow-md transition-all cursor-pointer">
@@ -452,6 +539,7 @@ function Main() {
                         </div>
                     </div>
                     
+                    {/* Essay Input Section */}
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                          <label htmlFor="essay" className="block text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
                              <span className="w-1.5 h-6 bg-orange-500 rounded-full inline-block"></span>
@@ -466,6 +554,7 @@ function Main() {
                         />
                     </div>
                     
+                    {/* Action Buttons */}
                     <div className="flex justify-center gap-4 pt-4">
                         <button onClick={clearInputs} className="px-8 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-full hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transform active:scale-95 transition-all cursor-pointer">
                            Clear All
@@ -488,6 +577,7 @@ function Main() {
                     </div>
                 </div>
 
+                {/* Score Results Section */}
                 {apiState.score && (
                     <section ref={resultsRef} className="mt-20 max-w-5xl mx-auto">
                         <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
@@ -507,8 +597,26 @@ function Main() {
 
                            <div className="p-8 md:p-12">
                                <div className="flex flex-col md:flex-row items-center justify-between gap-12 mb-12 border-b border-slate-100 pb-12">
-                                   <div className="text-center md:text-left">
-                                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Evaluation Results</h2>
+                                   <div className="text-center md:text-left flex-1">
+                                        <div className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-4 mb-2">
+                                            <h2 className="text-3xl font-bold text-slate-800">Evaluation Results</h2>
+                                            
+                                            {/* Publish Button - Visible only when topicId is present */}
+                                            {topicId && (
+                                                <button 
+                                                    onClick={() => PostEssay()} 
+                                                    disabled={publishLoading}
+                                                    className="md:ml-2 flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg shadow-md hover:bg-slate-700 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                                >
+                                                    {publishLoading ? (
+                                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    ) : (
+                                                        <CloudUploadIcon className="w-5 h-5" />
+                                                    )}
+                                                    Publish to Leaderboard
+                                                </button>
+                                            )}
+                                        </div>
                                         <p className="text-slate-500">Analysis provided by AI Model based on IELTS criteria.</p>
                                    </div>
                                    
