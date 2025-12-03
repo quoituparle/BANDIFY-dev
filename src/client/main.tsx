@@ -438,7 +438,7 @@ In conclusion, although mathematics plays a key role in developing logical skill
                             className="p-2.5 rounded-full hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer active:scale-95 group relative"
                             title="Go to Playground"
                         >
-                            <PlaygroundIcon className="w-6 h-6" />
+                            <p>Playground</p>
                             <span className="absolute top-full right-0 mt-1 text-xs bg-slate-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                                 Playground
                             </span>

@@ -44,13 +44,13 @@ function LandingPage() {
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={() => navigate('/login')}
-                            className="px-5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+                            className="px-5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                         >
                             Log in
                         </button>
                         <button 
                             onClick={() => navigate('/register')}
-                            className="px-5 py-2 text-sm font-bold text-white bg-slate-900 rounded-full hover:bg-slate-700 transition-all shadow-md active:scale-95"
+                            className="px-5 py-2 text-sm font-bold text-white bg-slate-900 rounded-full hover:bg-slate-700 transition-all shadow-md active:scale-95 cursor-pointer"
                         >
                             Register
                         </button>
@@ -81,10 +81,10 @@ function LandingPage() {
                         Access a massive library of high-scoring essays and join a community of learners improving together.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center ">
                         <button 
                             onClick={() => navigate('/')}
-                            className="group relative px-10 py-4 bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold rounded-full shadow-xl hover:shadow-orange-500/40 transform hover:-translate-y-1 active:translate-y-0 transition-all duration-200 flex items-center gap-2"
+                            className="group relative px-10 py-4 bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold rounded-full shadow-xl hover:shadow-orange-500/40 transform hover:-translate-y-1 active:translate-y-0 transition-all duration-200 flex items-center gap-2 cursor-pointer"
                         >
                             Try Now !
                             <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -92,7 +92,7 @@ function LandingPage() {
                         
                         <button 
                             onClick={() => navigate('/playground')}
-                            className="px-10 py-4 bg-white border border-slate-200 text-slate-700 text-lg font-bold rounded-full shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all"
+                            className="px-10 py-4 bg-white border border-slate-200 text-slate-700 text-lg font-bold rounded-full shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
                         >
                             Visit Playground
                         </button>
@@ -153,7 +153,7 @@ function LandingPage() {
                         </p>
                         <button 
                             onClick={() => navigate('/register')}
-                            className="px-8 py-3 bg-white text-slate-900 font-bold rounded-lg hover:bg-orange-50 transition-colors"
+                            className="px-8 py-3 bg-white text-slate-900 font-bold rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
                         >
                             Create Free Account
                         </button>
