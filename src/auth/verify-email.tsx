@@ -41,7 +41,7 @@ function Verification () {
             await apiClient.post('/verify-email', data);
             setSuccess('Verification successful!');
             setTimeout(() => {
-                navigate('/');
+                navigate('/login');
             }, 2000);
         } catch (err) {
             if (axios.isAxiosError(err)) {

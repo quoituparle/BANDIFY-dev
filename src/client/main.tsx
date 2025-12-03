@@ -551,6 +551,11 @@ function Main() {
                             placeholder="Start writing your essay here..."
                             className="w-full h-[400px] p-5 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white shadow-inner focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all resize-none text-slate-700 placeholder:text-slate-400 font-medium leading-relaxed"
                         />
+                            {essay && (
+                                <button onClick={() => setEssay('')} className="absolute top-3 right-3 p-2 rounded-lg text-slate-400 hover:bg-white hover:text-red-500 hover:shadow-md transition-all cursor-pointer">
+                                    <TrashIcon className="w-4 h-4"/>
+                                </button>
+                            )}                        
                     </div>
                     
                     {/* Action Buttons */}

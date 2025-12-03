@@ -26,6 +26,12 @@ function Login() {
 
     const navigate = useNavigate();
 
+    // New helper to auto-fill credentials
+    const handleVisitorMode = () => {
+        setEmail('test@test.com');
+        setPassword('12345678');
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email.trim() || !password.trim()) {
@@ -140,6 +146,17 @@ function Login() {
                         Sign up
                     </Link>
                 </p>
+
+                {/* Visitor Mode Link */}
+                <div className="text-center mt-4">
+                    <button
+                        type="button"
+                        onClick={handleVisitorMode}
+                        className="text-sm text-slate-400 hover:text-slate-600 underline cursor-pointer transition-colors"
+                    >
+                        Visitor Mode
+                    </button>
+                </div>
             </div>
         </div>
     );

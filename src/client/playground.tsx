@@ -378,7 +378,7 @@ function Playground() {
     // 5. Essay Detail View
     if (viewState === 'essay_detail' && selectedEssay && selectedTopic) {
         const overall = selectedEssay.Overall_score;
-        const username = selectedEssay.user?.username || selectedEssay.author?.username || "Anonymous";
+        const username = selectedEssay.author?.username || "Anonymous";
 
         return (
             <div className="min-h-screen bg-slate-50 p-6 md:p-8 relative">
@@ -414,31 +414,34 @@ function Playground() {
                         </div>
                      </div>
 
-                    {/* Content */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit">
+                    {/* Content - Single Column Layout */}
+                    <div className="space-y-6">
+                        {/* Topic Section */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Topic</h3>
                             <p className="text-slate-700 font-medium leading-relaxed">{selectedTopic.topic}</p>
                         </div>
 
-                        <div className="md:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                        {/* Essay Content Section */}
+                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Essay Content</h3>
                              <div className="prose prose-slate max-w-none text-slate-600 leading-loose whitespace-pre-wrap font-serif">
                                 {selectedEssay.content}
                              </div>
 
+                             {/* Feedback Section (Stacked) */}
                              {(selectedEssay.reason || selectedEssay.improvement) && (
-                                <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-1 gap-6">
+                                <div className="mt-8 pt-8 border-t border-slate-100 space-y-6">
                                     {selectedEssay.reason && (
                                         <div>
                                             <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Feedback</h4>
-                                            <p className="text-slate-600 text-sm">{selectedEssay.reason}</p>
+                                            <p className="text-slate-600 text-sm leading-relaxed">{selectedEssay.reason}</p>
                                         </div>
                                     )}
                                     {selectedEssay.improvement && (
                                         <div>
                                             <h4 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">Improvement</h4>
-                                            <p className="text-slate-600 text-sm">{selectedEssay.improvement}</p>
+                                            <p className="text-slate-600 text-sm leading-relaxed">{selectedEssay.improvement}</p>
                                         </div>
                                     )}
                                 </div>
