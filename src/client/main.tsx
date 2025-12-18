@@ -129,7 +129,7 @@ const ScoreBar = ({ label, score }: { label: string, score: number }) => {
 function Main() {
     const [topic, setTopic] = useState<string>('');
     const [essay, setEssay] = useState<string>('');
-    const [model, setModel] = useState<string>('gemini-2.5-flash');
+    const [model, setModel] = useState<string>('gemini-3-flash-preview');
     const [language, setLanguage] = useState<string>('English');
     const [apiKey, setApiKey] = useState<string>('');
     const [userEmail, setUserEmail] = useState<string>('');
